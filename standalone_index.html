@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>实习生地下电台 | Offline Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Zhi+Mang+Xing&display=swap');
+
+        :root {
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+            --fm-chaos: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            --fm-healing: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #000;
+            color: white;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.7s ease;
+            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+        }
+
+        .bg-chaos { background: #111; }
+        .bg-healing { background: #064e3b; }
+
+        header {
+            flex-shrink: 0;
+            padding: 40px 20px 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .radio-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: -0.05em;
+            line-height: 1;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sub-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+        .sub-text { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            opacity: 0.5;
+            z-index: 100;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .pill {
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .waveform {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 10px;
+        }
+
+        .waveform-bar {
+            width: 2px;
+            height: 100%;
+            border-radius: 1px;
+            animation: wave 1s ease-in-out infinite;
+            background: #ef4444;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 3px; }
+            50% { height: 100%; }
+        }
+
+        .waveform-bar:nth-child(2) { animation-delay: 0.2s; }
+        .waveform-bar:nth-child(3) { animation-delay: 0.4s; }
+        .waveform-bar:nth-child(4) { animation-delay: 0.6s; }
+
+        .slogan {
+            font-size: 13px;
+            font-weight: 700;
+            font-style: italic;
+            padding: 8px 24px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        main {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            min-height: 0;
+            position: relative;
+        }
+
+        .card-stack {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            max-height: 45vh;
+            aspect-ratio: 1 / 1.1;
+            transform: translateY(15px);
+        }
+
+        .note-card {
+            position: absolute;
+            inset: 0;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            user-select: none;
+        }
+
+        .note-card.tearing {
+            transform: translateY(-1000px) rotate(-30deg) scale(0.8) !important;
+            opacity: 0;
+        }
+
+        .font-handwriting {
+            font-family: 'Zhi Mang Xing', cursive;
+            font-size: 28px;
+            color: #3e2723;
+            line-height: 1.4;
+            max-height: 70%;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+        }
+
+        .author-tag {
+            font-size: 14px;
+            font-weight: 900;
+            color: rgba(0,0,0,0.5);
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .next-chevron {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 40px;
+            color: rgba(0,0,0,0.4);
+            pointer-events: none;
+            animation: pulse-chevron 2s infinite;
+        }
+
+        @keyframes pulse-chevron {
+            0%, 100% { opacity: 0.2; transform: translateY(-50%) translateX(0); }
+            50% { opacity: 0.6; transform: translateY(-50%) translateX(5px); }
+        }
+
+        footer {
+            flex-shrink: 0;
+            width: 100%;
+            padding: 20px 24px calc(24px + var(--safe-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .reaction-row {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            width: calc(100% - 20px);
+            z-index: 999;
+        }
+
+        .reaction-btn {
+            flex: 1;
+            height: 58px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .reaction-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.25); }
+
+        .reaction-emoji { font-size: 20px; }
+        .reaction-label { font-size: 10px; font-weight: 700; color: #ffffff; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .primary-btn {
+            width: 100%;
+            height: 64px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 0.2em;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+
+        .primary-btn:active { transform: scale(0.98); }
+
+        .secondary-row {
+            display: flex;
+            gap: 12px;
+            padding: 0 10px;
+        }
+
+        .sec-btn {
+            flex: 1;
+            height: 48px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            color: rgba(255,255,255,0.8);
+            font-size: 10px;
+            font-weight: 900;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .overlay.active { display: flex; }
+
+        .overlay-header {
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .close-btn { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 24px; cursor: pointer; }
+        .send-btn { background: #fff; border: none; padding: 10px 24px; border-radius: 99px; font-weight: 900; cursor: pointer; }
+
+        .input-area {
+            flex-grow: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .note-preview {
+            width: 100%;
+            max-width: 320px;
+            aspect-ratio: 1;
+            background: #fff9c4;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border-radius: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Zhi Mang Xing', cursive;
+            font-size: 28px;
+            color: #3e2723;
+            resize: none;
+        }
+
+        .excel-overlay {
+            position: fixed;
+            inset: 0;
+            background: #fff;
+            color: #000;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            font-family: sans-serif;
+        }
+
+        .excel-bar { background: #217346; color: #fff; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+
+        @keyframes plusOne {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        .plus-one {
+            position: absolute;
+            color: white;
+            font-weight: 900;
+            pointer-events: none;
+            animation: plusOne 0.8s ease-out forwards;
+            z-index: 100;
+        }
+
+        /* --- Buddy & Chat Styles --- */
+        .buddy-card-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .buddy-card {
+            width: 100%;
+            max-width: 320px;
+            background: white;
+            border-radius: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: popCard 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #000;
+        }
+
+        @keyframes popCard {
+            0% { transform: scale(0.5) translateY(50px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .buddy-photo {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            position: relative;
+        }
+
+        .buddy-info {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .buddy-name { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+        .buddy-intro { font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 20px; }
+
+        .douyin-btn {
+            width: 100%;
+            padding: 16px;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 99px;
+            font-weight: 900;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .chat-overlay {
+            position: fixed;
+            inset: 0;
+            background: #111;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .msg-ai { background: rgba(255,255,255,0.1); align-self: flex-start; color: white; border-bottom-left-radius: 4px; }
+        .msg-user { background: #ef4444; align-self: flex-end; color: white; border-bottom-right-radius: 4px; }
+
+        .chat-input-row {
+            padding: 16px 20px calc(16px + var(--safe-bottom));
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 99px;
+            padding: 12px 20px;
+            color: white;
+            outline: none;
+        }
+
+        .chat-send {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .typing { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 4px; display: none; }
+    </style>
+</head>
+<body class="bg-chaos">
+    <div class="app-container" id="app">
+        <header>
+            <div class="logo-row">
+                <div class="radio-icon">📻</div>
+                <div>
+                    <h1>实习生地下电台</h1>
+            <div class="sub-badge">
+                <span class="dot"></span>
+                <span class="sub-text">地下直播中</span>
+            </div>
+        </header>
+
+        <main id="main-area">
+            <div style="position: relative; width: 100%; max-width: 320px; aspect-ratio: 1 / 1.1; transform: translateY(15px);">
+                <div class="card-stack" id="card-container" style="position: absolute; inset: 0; max-height: none; max-width: none; transform: none;">
+                    <!-- Notes will be injected here -->
+                </div>
+                <div class="reaction-row" id="reactions">
+                    <div class="reaction-btn" onclick="react('clown')">
+                        <span class="reaction-emoji">🤡</span>
+                        <span class="reaction-label">我也干过 <span id="count-clown">0</span></span>
+                    </div>
+                    <div class="reaction-btn" onclick="react('trophy')">
+                        <span class="reaction-emoji">🏆</span>
+                        <span class="reaction-label">还有高手 <span id="count-trophy">0</span></span>
+                    </div>
+                    <div class="reaction-btn" onclick="react('joy')">
+                        <span class="reaction-emoji">🤣</span>
+                        <span class="reaction-label">笑发财了 <span id="count-joy">0</span></span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer id="main-footer">
+            <button class="primary-btn" id="primary-cta" onclick="openWriteModal()" style="background: #ef4444; color: white;">
+                ✍️ <span id="cta-text">别急..我有话说...</span>
+            </button>
+
+            <div class="status-row">
+                <div class="pill" id="freq-badge">
+                    <div class="waveform" id="waveform-container">
+                        <div class="waveform-bar"></div>
+                        <div class="waveform-bar"></div>
+                        <div class="waveform-bar"></div>
+                        <div class="waveform-bar"></div>
+                    </div>
+                    <span id="freq-text">FM 66.6 信号</span>
+                </div>
+                <div class="pill">📡 <span id="online-count">666</span> <span id="listen-text">次共鸣回响</span></div>
+            </div>
+
+            <div class="secondary-row">
+                <button class="sec-btn" onclick="switchFreq()">🔄 换情绪</button>
+                <button class="sec-btn" id="sec-action" onclick="showLeaderboard()">🏆 神人榜</button>
+                <button class="sec-btn" onclick="showExcel()" style="color:#ef4444; border-color:#500;">🔒 领导来了...</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Write Modal -->
+    <div class="overlay" id="write-modal">
+        <div class="overlay-header">
+            <button class="close-btn" onclick="closeModals()">✕</button>
+            <span style="font-size:10px; font-weight:900; letter-spacing:0.2em;">WRITE_MODE</span>
+            <button class="send-btn" onclick="submitNote()">发送</button>
+        </div>
+        <div class="input-area">
+            <div class="note-preview" id="preview-card">
+                <textarea id="note-input" placeholder="写下你的实习神作..." autofocus></textarea>
+            </div>
+            <p style="color:rgba(255,255,255,0.4); font-size:10px; margin-top:20px; letter-spacing:2px; font-weight:900;">CLICK SEND TO PUBLISH</p>
+        </div>
+    </div>
+
+    <!-- Excel View -->
+    <div class="excel-overlay" id="excel-view">
+        <div class="excel-bar">
+            <span>2026年Q2核心效能监控表.xlsx</span>
+            <button onclick="hideExcel()" style="background:#cc0000; color:white; border:none; padding:4px 8px; border-radius:4px;">退出监控</button>
+        </div>
+        <div style="padding:20px; font-family:monospace; font-size:12px;">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr style="background:#eee;"><th style="border:1px solid #ddd; padding:8px;">项目</th><th style="border:1px solid #ddd; padding:8px;">进度</th><th style="border:1px solid #ddd; padding:8px;">负责人</th></tr>
+                <tr><td style="border:1px solid #ddd; padding:8px;">KPI分析</td><td style="border:1px solid #ddd; padding:8px;">85%</td><td style="border:1px solid #ddd; padding:8px;">Admin</td></tr>
+                <tr><td style="border:1px solid #ddd; padding:8px;">财务预测</td><td style="border:1px solid #ddd; padding:8px;">32%</td><td style="border:1px solid #ddd; padding:8px;">Finance</td></tr>
+                <tr><td style="border:1px solid #ddd; padding:8px;">实习生评估</td><td style="border:1px solid #ddd; padding:8px; color:red; font-weight:bold; cursor:pointer;" onclick="hideExcel()">[点击返回]</td><td style="border:1px solid #ddd; padding:8px;">HR</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Buddy Card Overlay -->
+    <div class="buddy-card-overlay" id="buddy-overlay">
+        <div class="buddy-card">
+            <div class="buddy-photo" id="buddy-emoji">🤝</div>
+            <div class="buddy-info">
+                <div class="buddy-name" id="buddy-name">寻找中...</div>
+                <div class="buddy-intro" id="buddy-intro">正在为您寻找命中注定的上班搭子...</div>
+                <a href="https://v.douyin.com/mock" target="_blank" class="douyin-btn" id="buddy-btn" style="display:none;">去 TA 的主页看看</a>
+                <button class="douyin-btn" style="background:#eee; color:#666; margin-top:10px;" onclick="closeModals()">再看看</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Overlay -->
+    <div class="chat-overlay" id="chat-overlay">
+        <div class="chat-header">
+            <button class="close-btn" onclick="closeModals()">✕</button>
+            <div style="text-align:center;">
+                <div style="font-weight:900; font-size:14px;" id="chat-title">灵魂接线员</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.4);" id="chat-status">在线</div>
+            </div>
+            <div style="width:24px;"></div>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages here -->
+        </div>
+        <div class="typing" id="typing-indicator" style="padding: 0 20px;">正在输入...</div>
+        <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chat-input" placeholder="和接线员聊聊..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <button class="chat-send" onclick="sendChatMessage()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const MSGS = {
+            FM_66.6: JSON.parse(localStorage.getItem('msgs_666')) || [
+                { id: 1, text: "把公司的核心代码库不小心 push 到了一个公开的仓库，结果全网都在帮我 debug，老板气得当场表演了一次后空翻。", author: "牛马_101", color: "#fff9c4", relatable: 88, god: 12, joy: 45 },
+                { id: 2, text: "开会时以为麦克风关了，大声吐槽老板的发际线像退潮的海景房，结果全公司静默了三秒，然后爆发了雷鸣般的掌声。", author: "牛马_404", color: "#f8bbd0", relatable: 120, god: 56, joy: 233 },
+                { id: 3, text: "老板让我在周报里写点'引人入胜'的东西，我于是附上了一个我珍藏多年的恐怖悬疑小说链接。", author: "牛马_996", color: "#b2dfdb", relatable: 45, god: 89, joy: 67 }
+            ],
+            FM_88.8: JSON.parse(localStorage.getItem('msgs_888')) || [
+                { id: 1, text: "哪怕在最黑暗的工位里，也要记得给自己点一盏名为'勇气'的灯。实习期总会过去，而你的光芒永存。", author: "治愈君", color: "#c8e6c9", relatable: 56, god: 4, joy: 8 },
+                { id: 2, text: "今天又被批评了？没关系，每一次挫折都是在给未来的成熟充值。加油，每一个努力的灵魂。", author: "温暖学姐", color: "#e1bee7", relatable: 43, god: 2, joy: 5 }
+            ]
+        };
+
+        let currentFreq = 'FM_66.6';
+        let currentIdx = 0;
+
+        function renderNote() {
+            const container = document.getElementById('card-container');
+            container.innerHTML = '';
+            
+            const msg = MSGS[currentFreq][currentIdx % MSGS[currentFreq].length];
+            
+            const card = document.createElement('div');
+            card.className = 'note-card';
+            card.style.backgroundColor = msg.color || '#fff';
+            card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
+            card.onclick = (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                // Only trigger nextNote if clicked on the right 30% of the card
+                if (x > rect.width * 0.7) {
+                    nextNote();
+                }
+            };
+
+            card.innerHTML = `
+                <div class="author-tag">@${msg.author}</div>
+                <div class="font-handwriting">"${msg.text}"</div>
+                <div class="next-chevron">›</div>
+            `;
+            
+            container.appendChild(card);
+            updateCounters();
+        }
+
+        function nextNote() {
+            const card = document.querySelector('.note-card');
+            card.classList.add('tearing');
+            setTimeout(() => {
+                currentIdx++;
+                renderNote();
+            }, 300);
+        }
+
+        function updateCounters() {
+            const listenText = document.getElementById('listen-text');
+            listenText.innerText = currentFreq === 'FM_66.6' ? '次共鸣回响' : '位战友已同步';
+
+            if(currentFreq === 'FM_88.8') {
+                document.getElementById('reactions').style.display = 'none';
+                return;
+            }
+            document.getElementById('reactions').style.display = 'flex';
+            const msg = MSGS[currentFreq][currentIdx % MSGS[currentFreq].length];
+            document.getElementById('count-clown').innerText = msg.relatable || 0;
+            document.getElementById('count-trophy').innerText = msg.god || 0;
+            document.getElementById('count-joy').innerText = msg.joy || 0;
+        }
+
+        function react(type) {
+            const msg = MSGS[currentFreq][currentIdx % MSGS[currentFreq].length];
+            const key = type === 'clown' ? 'relatable' : type === 'trophy' ? 'god' : 'joy';
+            msg[key] = (msg[key] || 0) + 1;
+            updateCounters();
+            
+            // Create +1 animation
+            const plus = document.createElement('div');
+            plus.className = 'plus-one';
+            plus.innerText = '+1';
+            plus.style.left = event.clientX + 'px';
+            plus.style.top = event.clientY + 'px';
+            document.body.appendChild(plus);
+            setTimeout(() => plus.remove(), 800);
+            
+            localStorage.setItem(currentFreq === 'FM_66.6' ? 'msgs_666' : 'msgs_888', JSON.stringify(MSGS[currentFreq]));
+        }
+
+        function switchFreq() {
+            currentFreq = currentFreq === 'FM_66.6' ? 'FM_88.8' : 'FM_66.6';
+            currentIdx = 0;
+            
+            const body = document.body;
+            const freqText = document.getElementById('freq-text');
+            const slogan = document.getElementById('slogan-text');
+            const cta = document.getElementById('primary-cta');
+            const ctaText = document.getElementById('cta-text');
+            const secAction = document.getElementById('sec-action');
+            const bars = document.querySelectorAll('.waveform-bar');
+
+            if(currentFreq === 'FM_88.8') {
+                body.className = 'bg-healing';
+                freqText.innerText = 'FM 88.8 信号';
+                slogan.innerText = '“在没人的角落，我也想抱紧你”';
+                cta.style.background = '#fff';
+                cta.style.color = '#064e3b';
+                ctaText.innerText = '真好，我也有话说';
+                secAction.innerHTML = '🤝 申请上班搭子';
+                bars.forEach(b => b.style.background = '#10b981');
+            } else {
+                body.className = 'bg-chaos';
+                freqText.innerText = 'FM 66.6 信号';
+                slogan.innerText = '“小小的老子总能捅大大的篓子”';
+                cta.style.background = '#ef4444';
+                cta.style.color = '#fff';
+                ctaText.innerText = '别急..我有话说...';
+                secAction.innerHTML = '🏆 神人榜';
+                bars.forEach(b => b.style.background = '#ef4444');
+            }
+            renderNote();
+        }
+
+        function openWriteModal() {
+            document.getElementById('write-modal').classList.add('active');
+            document.getElementById('note-input').focus();
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
+        }
+
+        function submitNote() {
+            const text = document.getElementById('note-input').value;
+            if(!text.trim()) return;
+            
+            const newNote = {
+                id: Date.now(),
+                text: text,
+                author: "实习牛马_" + Math.floor(Math.random()*900+100),
+                color: "#fffaaa",
+                relatable: 0, god: 0, joy: 0
+            };
+            
+            MSGS[currentFreq].unshift(newNote);
+            localStorage.setItem(currentFreq === 'FM_66.6' ? 'msgs_666' : 'msgs_888', JSON.stringify(MSGS[currentFreq]));
+            
+            document.getElementById('note-input').value = '';
+            closeModals();
+            currentIdx = 0;
+            renderNote();
+        }
+
+        function showExcel() { document.getElementById('excel-view').style.display = 'flex'; }
+        function hideExcel() { document.getElementById('excel-view').style.display = 'none'; }
+        
+        function showLeaderboard() { 
+            if(currentFreq === 'FM_88.8') {
+                startBuddyMatch();
+                return;
+            }
+            alert("神人榜功能暂在主站开放，请刷新体验完整版！"); 
+        }
+
+        const AI_RESPONSES = {
+            'FM_66.6': [
+                "我是 FM 66.6 的灵魂接线员，听说你今天又捅篓子了？没事，说出来让大家开心下（误）。",
+                "职场守则第一条：只要我不尴尬，尴尬的就是别人。你那事儿真不算大。",
+                "老板最近发际线又退了，他估计没心思管你。放宽心。",
+                "实习期的离谱事儿多了去了，去年有个哥们直接把公司服务器当矿机了，你这顶多算毛毛雨。"
+            ],
+            'FM_88.8': [
+                "你好哟，FM 88.8 接线员上线。感觉到你今天有点累，要不要我抱抱你？",
+                "辛苦啦，在这个城市里，你不是一个人在战斗。电波这头我一直都在。",
+                "深呼吸... 现在的烦恼，到明年这时候看真的什么都不是。",
+                "去做点让自己开心的事吧，喝杯热奶茶或者看场电影，你值得被温柔对待。"
+            ]
+        };
+
+        function startBuddyMatch() {
+            const overlay = document.getElementById('buddy-overlay');
+            const emoji = document.getElementById('buddy-emoji');
+            const nameEl = document.getElementById('buddy-name');
+            const introEl = document.getElementById('buddy-intro');
+            const btn = document.getElementById('buddy-btn');
+
+            overlay.style.display = 'flex';
+            nameEl.innerText = "匹配中...";
+            introEl.innerText = "正在为您寻找命中注定的上班搭子...";
+            emoji.innerText = "🤝";
+            btn.style.display = 'none';
+
+            setTimeout(() => {
+                const isHuman = Math.random() < 0.3;
+                if (isHuman) {
+                    const humanBuddies = [
+                        { name: "卷王之王", intro: "目前在某大厂打黑工，擅长各种复杂的 Excel 和熬最深的夜。", emoji: "👨‍💻" },
+                        { name: "摸鱼教主", intro: "已经在工位上待了三小时没切换过屏幕。需要有人监督我下班。", emoji: "🧘" }
+                    ];
+                    const buddy = humanBuddies[Math.floor(Math.random() * humanBuddies.length)];
+                    nameEl.innerText = buddy.name;
+                    introEl.innerText = buddy.intro;
+                    emoji.innerText = buddy.emoji;
+                    btn.style.display = 'block';
+                } else {
+                    overlay.style.display = 'none';
+                    openChat();
+                }
+            }, 1500);
+        }
+
+        function openChat() {
+            const overlay = document.getElementById('chat-overlay');
+            overlay.style.display = 'flex';
+            document.getElementById('chat-messages').innerHTML = '';
+            
+            const firstMsg = currentFreq === 'FM_66.6' 
+                ? "我是 FM 66.6 的灵魂接线员，听说你今天又捅篓子了？" 
+                : "你好哟，FM 88.8 接线员上线。感觉到你今天有点累，要不要我抱抱你？";
+            
+            setTimeout(() => addChatMessage('ai', firstMsg), 500);
+        }
+
+        function addChatMessage(role, text) {
+            const container = document.getElementById('chat-messages');
+            const msg = document.createElement('div');
+            msg.className = `msg-bubble msg-${role}`;
+            msg.innerText = text;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addChatMessage('user', text);
+            input.value = '';
+
+            const indicator = document.getElementById('typing-indicator');
+            indicator.style.display = 'block';
+
+            setTimeout(() => {
+                indicator.style.display = 'none';
+                const responses = AI_RESPONSES[currentFreq];
+                const res = responses[Math.floor(Math.random() * responses.length)];
+                addChatMessage('ai', res);
+            }, 1500);
+        }
+
+        // Initialize
+        renderNote();
+        setInterval(() => {
+            document.getElementById('online-count').innerText = Math.floor(600 + Math.random() * 50);
+        }, 3000);
+    </script>
+</body>
+</html>

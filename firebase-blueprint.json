@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "CommunityMessage": {
+      "title": "Community Message",
+      "description": "A healing message written by a user for others.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "The handwritten message content." },
+        "authorName": { "type": "string", "description": "Optional author display name." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the message was posted." },
+        "color": { "type": "string", "description": "The sticky note color hex." },
+        "stickers": { 
+          "type": "array", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "rotate": { "type": "number" }
+            }
+          }
+        }
+      },
+      "required": ["text", "createdAt", "color"]
+    },
+    "HealingStats": {
+      "title": "Healing Stats",
+      "description": "Global statistics for the community healing experience.",
+      "type": "object",
+      "properties": {
+        "activeCount": { "type": "number", "description": "The number of people currently 'healing'." }
+      },
+      "required": ["activeCount"]
+    }
+  },
+  "firestore": {
+    "/community_messages/{messageId}": {
+      "schema": "CommunityMessage",
+      "description": "Collection of messages shared by the community."
+    },
+    "/healing_stats/global": {
+      "schema": "HealingStats",
+      "description": "Singleton document containing global community stats."
+    }
+  }
+}

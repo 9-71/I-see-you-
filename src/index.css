@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Zeyada&family=Inter:wght@400;700;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", serif;
+  --font-handwriting: "Zeyada", cursive;
+  --font-sans: "Inter", sans-serif;
+  --font-terminal: "Consolas", "Courier New", "Menlo", monospace;
+
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+  }
+
+  @keyframes static-noise {
+    0% { background-position: 0% 0%; }
+    10% { background-position: 10% 5%; }
+    20% { background-position: -5% 10%; }
+    30% { background-position: 15% -5%; }
+    40% { background-position: -10% 15%; }
+    50% { background-position: 20% 5%; }
+    60% { background-position: 5% 20%; }
+    70% { background-position: -15% 10%; }
+    80% { background-position: 10% -15%; }
+    90% { background-position: 5% 10%; }
+    100% { background-position: 0% 0%; }
+  }
+
+  @keyframes danmaku-move {
+    from { transform: translateX(100vw); }
+    to { transform: translateX(-100%); }
+  }
+
+  @keyframes radio-glow {
+    0% { filter: drop-shadow(0 0 5px rgba(255, 0, 255, 0.5)) drop-shadow(0 0 10px rgba(0, 255, 255, 0.3)); }
+    50% { filter: drop-shadow(0 0 15px rgba(255, 255, 0, 0.7)) drop-shadow(0 0 20px rgba(255, 0, 255, 0.5)); }
+    100% { filter: drop-shadow(0 0 5px rgba(255, 0, 255, 0.5)) drop-shadow(0 0 10px rgba(0, 255, 255, 0.3)); }
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes peel-off {
+    0% { transform: translateY(0) rotate(0); opacity: 1; filter: blur(0); }
+    100% { transform: translateY(-120vh) rotate(-35deg) scale(0.8); opacity: 0; filter: blur(15px); }
+  }
+
+  @keyframes pulse-lift {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1) translate(-2px, -2px); opacity: 1; }
+  }
+
+  @keyframes float-up-fade {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-40px); opacity: 0; }
+  }
+
+  @keyframes breathing-prompt {
+    0%, 100% { opacity: 0.4; transform: scale(0.95); }
+    50% { opacity: 0.8; transform: scale(1); }
+  }
+
+  @keyframes heart-pulse {
+    0% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,105,180,0)); }
+    50% { transform: scale(1.3); filter: drop-shadow(0 0 20px rgba(255,105,180,0.8)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,105,180,0)); }
+  }
+
+  @keyframes signal-wave {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+  @keyframes floating-plus-one {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-40px) scale(1.5); opacity: 0; }
+  }
+}
+
+.animate-plus-one {
+  animation: floating-plus-one 0.8s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+}
+
+.animate-heart-pulse {
+  animation: heart-pulse 1s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.signal-wave {
+  position: absolute;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  animation: signal-wave 2s infinite linear;
+}
+
+.floating-plus-one {
+  position: absolute;
+  animation: float-up-fade 0.8s ease-out forwards;
+  pointer-events: none;
+  font-weight: 900;
+  font-size: 14px;
+  z-index: 100;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.animate-breathing {
+  animation: breathing-prompt 2s infinite ease-in-out;
+}
+
+.curled-corner {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.15));
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  z-index: 40;
+}
+
+.curled-corner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 48%, rgba(255,255,255,0.4) 50%, transparent 52%);
+}
+
+.curled-corner:hover {
+  width: 80px;
+  height: 80px;
+}
+
+.peel-animation {
+  animation: peel-off 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+}
+
+.animate-lift {
+  animation: pulse-lift 2s infinite ease-in-out;
+}
+
+.resonance-pill {
+  position: absolute;
+  pointer-events: none;
+  animation: resonance-pulse 0.6s ease-out forwards;
+}
+
+.glitch-effect {
+  animation: glitch 0.2s infinite;
+}
+
+.static-layer {
+  background-image: url('https://www.transparenttextures.com/patterns/60-lines.png');
+  animation: static-noise 0.5s steps(1) infinite;
+}
+
+.disaster-note {
+  clip-path: polygon(
+    0% 0%, 5% 2%, 10% 0%, 15% 3%, 20% 1%, 25% 4%, 30% 2%, 35% 5%, 40% 3%, 45% 6%, 50% 4%, 55% 7%, 60% 5%, 65% 8%, 70% 6%, 75% 9%, 80% 7%, 85% 10%, 90% 8%, 95% 11%, 100% 9%,
+    98% 15%, 100% 20%, 97% 25%, 99% 30%, 96% 35%, 98% 40%, 95% 45%, 97% 50%, 94% 55%, 96% 60%, 93% 65%, 95% 70%, 92% 75%, 94% 80%, 91% 85%, 93% 90%, 90% 95%, 92% 100%,
+    85% 98%, 80% 99%, 75% 97%, 70% 98%, 65% 96%, 60% 97%, 55% 95%, 50% 96%, 45% 94%, 40% 95%, 35% 93%, 30% 94%, 25% 92%, 20% 93%, 15% 91%, 10% 92%, 5% 90%, 0% 91%,
+    2% 85%, 1% 80%, 3% 75%, 0% 70%, 2% 65%, 1% 60%, 3% 55%, 0% 50%, 2% 45%, 1% 40%, 3% 35%, 0% 30%, 2% 25%, 1% 20%, 3% 15%, 0% 10%, 2% 5%
+  );
+}
+
+.danmaku-container {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.danmaku-item {
+  animation: danmaku-move 12s linear infinite;
+  white-space: nowrap;
+}
+
+.radio-animated-icon {
+  animation: radio-glow 3s ease-in-out infinite, spin-slow 10s linear infinite;
+}
+
+.meadow-bg {
+  background: linear-gradient(180deg, #87ceeb 0%, #7fb069 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.meadow-bg::before {
+  content: "☀️";
+  position: absolute;
+  top: 10%;
+  right: 15%;
+  font-size: 80px;
+  opacity: 0.3;
+  filter: blur(2px);
+}
